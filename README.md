@@ -1,0 +1,1 @@
+# SQL-code-for-extracting-heart-failure-from-MIMIC
