@@ -1,0 +1,59 @@
+DROP TABLE IF EXISTS hw_data CASCADE; --height,weight
+CREATE TABLE hw_data AS
+with FirstVRawData as
+ (
+SELECT c.subject_id,c.hadm_id,c.itemid,c.charttime,
+	     CASE
+       WHEN c.itemid IN (762, 763, 3723, 3580, 3581, 3582, 226512)
+            THEN 'WEIGHT'
+       WHEN c.itemid IN (920, 1394, 4187, 3486, 3485, 4188, 226707)
+            THEN 'HEIGHT'
+       END AS hw_parameter, 
+			 CASE
+       WHEN c.itemid  IN (3581,226512)   THEN c.valuenum * 0.45359237 
+       WHEN c.itemid  IN (3582) THEN c.valuenum * 0.0283495231 
+       WHEN c.itemid  IN (920, 1394, 4187, 3486, 226707) THEN c.valuenum * 2.54
+       ELSE c.valuenum 
+       END AS valuenum
+FROM chartevents c
+WHERE c.valuenum  IS NOT NULL 
+  AND c.error IS DISTINCT FROM 1 -- exclude rows marked as error
+  AND   c.itemid  IN (762, 763, 3723, 3580, -- Weight Kg
+    3581,                                     -- Weight lb
+    3582,                                     -- Weight oz
+    920, 1394, 4188, 3486,                    -- Height inches
+    3485, 4187                                -- Height cm
+    -- Metavision
+    , 226707 -- Height, inches
+    , 226512)
+),
+SingleParameters AS (
+   SELECT subject_id,
+         hadm_id,
+         hw_parameter,
+         first_value(valuenum) over 
+            (partition BY subject_id, hadm_id, hw_parameter
+             order by charttime ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING)
+             AS first_valuenum  
+    FROM FirstVRawData  
+	  -
+), 
+PivotParameters AS (
+    SELECT subject_id, hadm_id,
+           MAX(case when hw_parameter = 'HEIGHT' then first_valuenum else NULL end) AS height_first,
+           MAX(case when hw_parameter = 'WEIGHT' then first_valuenum else NULL end) AS weight_first
+
+    FROM SingleParameters
+    GROUP BY subject_id,hadm_id
+),
+hw_data as (
+    SELECT f.hadm_id,
+    f.subject_id,
+    ROUND( cast(f.height_first as numeric), 2) AS height_first,
+  
+    ROUND(cast(f.weight_first as numeric), 2) AS weight_first
+
+    FROM PivotParameters f
+    ORDER BY subject_id, hadm_id)
+
+SELECT * from hw_data
