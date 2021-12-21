@@ -1,0 +1,51 @@
+DROP TABLE IF EXISTS drug_data CASCADE;
+CREATE TABLE drug_data AS
+
+with drug as (
+SELECT subject_id, hadm_id, icustay_id,
+--case when drug = 'Atenolol' THEN  'Atenolol'
+case  -- '%metoprolol%' 
+      -- '%succinate%' 
+	  -- '%tartrate%' 
+	  -- '%toprol%' 
+	  -- '%atenolol%'  
+	  -- '%esmolol%'   
+	  -- '%carvedilol%'  
+	  -- '%bisoprolol%'  
+	  -- '%trandol%'  
+	  -- '%propranolol%'   
+	  -- '%inderal%'  
+	  -- '%acebutolol%' 
+	  -- '%nadolol%' 
+			when lower(drug) like any (ARRAY['%trandol%','enalaprilat','captopril']) then 'acei' 
+			when lower(drug) like '%sartan%' then 'ARB' 
+			when lower(drug) LIKE ANY (ARRAY['%metoprolol%', '%norepinephrine bitartrate%', 
+	      '%toprol%', '%atenolol%', '%esmolol%', '%carvedilol%', '%bisoprolol%', 
+        '%propranolol%', '%inderal%', '%acebutolol%', '%nadolol%']) THEN 'beat' 
+			when lower(drug) LIKE '%dipine%' then 'CCB' 
+			when lower(drug) like '%digoxin%' then 'Digitalis'  
+			when lower(drug) like ANY(ARRAY['%semide%','spironolactone']) then 'Diuretic' 
+			when lower(drug) like '%isosorbide%' then 'Nitrates' 
+	 else null
+	 end as drug_name2
+from prescriptions pre
+),
+drug_data as (
+select 
+  dr.subject_id,
+  dr.hadm_id,
+  dr.icustay_id,
+  SUM(CASE WHEN lower(dr.drug_name2) = 'acei' then 1 ELSE 0 end) as acei,
+	SUM(CASE WHEN lower(dr.drug_name2) = 'arb' then 1 else 0 end ) as ARB,
+	SUM(case when lower(dr.drug_name2) = 'beat' then 1 else 0 end ) as beat,
+  SUM(CASE WHEN lower(dr.drug_name2) = 'ccb' then 1 ELSE 0 end) as CCB,
+	SUM(CASE WHEN lower(dr.drug_name2) = 'digitalis' then 1 ELSE 0 end) as Digitalis,
+  SUM(CASE WHEN lower(dr.drug_name2) = 'diuretic' then 1 ELSE 0 end) as Diuretic,
+  SUM(CASE WHEN lower(dr.drug_name2) = 'nitrates' then 1 ELSE 0 end) as Nitrates
+  
+from drug dr
+group by dr.subject_id,
+         dr.hadm_id,
+         dr.icustay_id
+)
+SELECT * from drug_data
