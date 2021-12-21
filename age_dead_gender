@@ -1,0 +1,37 @@
+ALTER table chf_patient_7025 add gender char(1);
+ALTER table chf_patient_7025 add admission_age FLOAT;
+ALTER TABLE chf_patient_7025 add dead_time FLOAT;
+
+UPDATE chf_patient_7025
+SET gender = aa.gender  -- 
+FROM  (
+SELECT chf.subject_id,patients.gender, 
+ROUND( (CAST(EXTRACT(epoch FROM chf.admittime - patients.dob)/(60*60*24*365.242) AS numeric)), 4) AS admission_age,
+
+ROUND( (CAST(EXTRACT(epoch FROM patients.dod - chf.admittime)/(60*60*24*365.242) AS numeric)), 4) AS dead_time
+
+FROM chf_patient_7025 as chf INNER JOIN patients on chf.subject_id=patients.subject_id
+)as aa 
+WHERE chf_patient_7025.subject_id=aa.subject_id;
+
+UPDATE chf_patient_7025
+SET admission_age = aa.admission_age  -- 
+FROM  (
+SELECT chf.subject_id,patients.gender, 
+ROUND( (CAST(EXTRACT(epoch FROM chf.admittime - patients.dob)/(60*60*24*365.242) AS numeric)), 4) AS admission_age,
+
+ROUND( (CAST(EXTRACT(epoch FROM patients.dod - chf.admittime)/(60*60*24*365.242) AS numeric)), 4) AS dead_time
+
+FROM chf_patient_7025 as chf INNER JOIN patients on chf.subject_id=patients.subject_id
+)as aa 
+WHERE chf_patient_7025.subject_id=aa.subject_id;
+
+UPDATE chf_patient_7025
+SET dead_time = aa.dead_time  -- 
+FROM  (
+SELECT chf.subject_id,patients.gender, 
+ROUND( (CAST(EXTRACT(epoch FROM chf.admittime - patients.dob)/(60*60*24*365.242) AS numeric)), 4) AS admission_age,
+ROUND( (CAST(EXTRACT(epoch FROM patients.dod - chf.admittime)/(60*60*24*365.242) AS numeric)), 4) AS dead_time
+FROM chf_patient_7025 as chf INNER JOIN patients on chf.subject_id=patients.subject_id
+)as aa 
+WHERE chf_patient_7025.subject_id=aa.subject_id;
