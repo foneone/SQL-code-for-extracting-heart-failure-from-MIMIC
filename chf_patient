@@ -1,0 +1,40 @@
+DROP TABLE IF EXISTS chf_patient_7025 CASCADE;
+CREATE TABLE chf_patient_7025  AS with chf_patients as 
+(
+SELECT ad.subject_id,ad.hadm_id,ad.admittime,ad.dischtime,ad.deathtime
+FROM admissions as ad INNER JOIN (
+	SELECT subject_id,min(admittime) as admittime
+	from admissions
+	WHERE subject_id in (
+		( SELECT DISTINCT subject_id
+			FROM diagnoses_icd
+			WHERE  icd9_code ='39891' or icd9_code ='40201' or icd9_code ='40211'
+         or icd9_code ='40291' or icd9_code ='40401' or icd9_code ='40403' or icd9_code ='40411' or icd9_code ='40413' or 
+         icd9_code ='40491' or icd9_code ='40493' or icd9_code ='4280' or icd9_code ='4281' or icd9_code BETWEEN '42820' and '42823' or icd9_code BETWEEN '42830' and '42833' or icd9_code BETWEEN '42840' and '42843' or icd9_code ='4289' )
+	)
+	GROUP BY subject_id
+	HAVING "count"(hadm_id) = 1  --  only one be hospitalized
+	) as aa on ad.subject_id=aa.subject_id and ad.admittime=aa.admittime 
+)
+select * from chf_patients；
+
+
+DROP TABLE IF EXISTS chf_patient_3411 CASCADE;
+CREATE TABLE chf_patient_3411  AS with chf_patients as 
+(
+SELECT ad.subject_id,ad.hadm_id,ad.admittime,ad.dischtime,ad.deathtime
+FROM admissions as ad INNER JOIN (
+	SELECT subject_id,max(admittime) as admittime -- extract the last hospitalized time 
+	from admissions
+	WHERE subject_id in (
+		( SELECT DISTINCT subject_id
+			FROM diagnoses_icd
+			WHERE  icd9_code ='39891' or icd9_code ='40201' or icd9_code ='40211'
+         or icd9_code ='40291' or icd9_code ='40401' or icd9_code ='40403' or icd9_code ='40411' or icd9_code ='40413' or 
+         icd9_code ='40491' or icd9_code ='40493' or icd9_code ='4280' or icd9_code ='4281' or icd9_code BETWEEN '42820' and '42823' or icd9_code BETWEEN '42830' and '42833' or icd9_code BETWEEN '42840' and '42843' or icd9_code ='4289' )
+	)
+	GROUP BY subject_id
+	HAVING "count"(hadm_id) > 1  -- more than two times be hospitalized 
+	) as aa on ad.subject_id=aa.subject_id and ad.admittime=aa.admittime 
+)
+select * from chf_patients；
