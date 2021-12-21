@@ -1,0 +1,23 @@
+DROP TABLE IF EXISTS procedures_data CASCADE;
+CREATE TABLE procedures_data AS
+with procedures as (
+	 SELECT subject_id,hadm_id,CASE 
+				WHEN icd9_code='0052' then 'LVAD'  
+				when icd9_code='0050' or icd9_code='0051' or icd9_code='0053' or icd9_code='0054' then 'CRT' 
+				WHEN icd9_code='8949' or icd9_code='3794' then 'ICD' 
+				WHEN icd9_code='3751' then 'HT'
+						else NULL
+						end as procedures_name 
+   FROM procedures_icd
+	 WHERE icd9_code in ('0052','0050','0051','0053','0054','8949','3794','3751')
+),
+procedures_data as(
+  SELECT pro.subject_id,pro.hadm_id,
+  sum(CASE WHEN lower(pro.procedures_name)='up' then 1 ELSE 0 end) as pro_up,
+  sum(CASE WHEN lower(pro.procedures_name)='ctr' then 1 ELSE 0 end) as pro_ctr,
+  sum(CASE WHEN lower(pro.procedures_name)='icd' then 1 ELSE 0 end) as pro_icd,
+  sum(CASE WHEN lower(pro.procedures_name)='ht' then 1 ELSE 0 end) as pro_ht
+  from procedures pro 
+  group by pro.subject_id,pro.hadm_id
+)
+SELECT * FROM procedures_data
