@@ -1,0 +1,15 @@
+UPDATE chf_patient_3411
+SET gender =1
+WHERE gender='F';
+
+UPDATE chf_patient_3411
+SET gender =0
+WHERE gender='M';
+
+UPDATE chf_patient_7025
+SET gender =0
+WHERE gender='M';
+
+UPDATE chf_patient_7025 
+SET gender =1
+WHERE gender='F';
