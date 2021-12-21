@@ -1,0 +1,38 @@
+-- ALTER table chf_patient_7025 add first_icustays_num smallint; 
+--ALTER table  chf_patient_7025 add icustays_time double precision; 
+--ALTER table  chf_patient_7025 add ccu_stays SMALLINT;
+
+UPDATE chf_patient_7025
+SET icustays_time = aa.icustays_time
+FROM  (
+SELECT chf.subject_id,count(*) as first_icustays_num,sum(icu.los) as icustays_time
+FROM chf_patient_7025 as chf INNER JOIN  icustays  as icu on chf.subject_id=icu.subject_id 
+GROUP BY chf.subject_id
+)as aa 
+WHERE chf_patient_7025.subject_id=aa.subject_id;
+
+UPDATE chf_patient_7025
+SET first_icustays_num = aa.first_icustays_num 
+FROM  (
+SELECT chf.subject_id,count(*) as first_icustays_num,sum(icu.los) as icustays_time
+FROM chf_patient_7025 as chf INNER JOIN  icustays  as icu on chf.subject_id=icu.subject_id 
+GROUP BY chf.subject_id
+)as aa 
+WHERE chf_patient_7025.subject_id=aa.subject_id;
+
+
+UPDATE chf_patient_7025
+SET ccu_stays = aa.ccu_stays 
+FROM  (
+SELECT bb.subject_id,CASE 
+	WHEN bb.ccu_count is NOT NULL THEN 1
+	ELSE NULL 
+  END AS ccu_stays
+FROM(
+SELECT chf.subject_id,count(*) as ccu_count
+FROM chf_patient_7025 as chf INNER JOIN  icustays  as icu on chf.subject_id=icu.subject_id
+where first_careunit='CCU' or last_careunit='CCU'
+GROUP BY chf.subject_id
+) as bb 
+) as aa
+WHERE chf_patient_7025.subject_id=aa.subject_id;
