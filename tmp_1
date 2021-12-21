@@ -1,0 +1,130 @@
+DROP TABLE IF EXISTS getlab_chf1 CASCADE;
+CREATE TABLE getlab_chf1 AS
+
+with tmp_lab as (
+SELECT subject_id, 
+       hadm_id,
+	   charttime,
+		  case when itemid = '50963'  then 'BNP'
+		       
+		       when itemid = '51300' then  'WBC' 
+			   when itemid = '50811' then 'Hb'
+			   when itemid = '50279' then 'RB' 
+			   when itemid =  '51265' then 'PLT' 
+			   when itemid='50809' then 'GLU' 
+               when itemid='50852' then 'HbA1C' 
+      			   
+               
+               when itemid in ('50862') then 'Alb'
+               when itemid in ('50885') then 'Tbil'
+               when itemid in ('50883') then 'Dbil'
+               WHEN itemid = '50861' then 'ALT'
+               WHEN itemid = '50878' then 'AST'
+               when itemid = '50863' then 'AP' 
+			   when itemid = '51241' then 'LAP' 
+	
+				when itemid = '50912' THEN 'Cre' 
+				when itemid = '51106' THEN 'Bun' 
+				when itemid = '51007' THEN 'Uric' 
+				when itemid = '51005' THEN 'Uric_aurine'
+			    when itemid = '51006' THEN 'Unitro' 
+
+                WHEN itemid = '50971' then 'K'
+                WHEN itemid ='50983' then 'Na'
+                WHEN itemid ='50902' then 'Cl'
+              
+                WHEN itemid ='50907' then 'Cho'
+                WHEN itemid ='50906' then 'LDL'
+                WHEN itemid ='50904' then 'HDL'
+                WHEN itemid ='51000' then 'Tg'
+                
+                WHEN itemid ='51001' then 'T3'
+                WHEN itemid ='50994' then 'T4'
+                WHEN itemid ='50995' then 'FT4'
+                WHEN itemid ='50993' then 'TSH'
+                WHEN itemid ='51002' then 'Ctni1'
+				WHEN itemid ='51003' then 'Ctni2'
+				WHEN itemid ='50889' then 'CRP'	
+			    when itemid in ('51196','50915') then 'Dimer'
+                WHEN itemid in ('50908','50911') then 'CKMB' 
+                WHEN itemid in ('50910') then 'CK'
+				
+                when itemid = ('51140','51237','51274' ) then 'antithrombin' 
+                
+                when itemid = '50821' then 'Po2'
+                when itemid = '50818' then 'Pco2'
+			
+				when itemid = '50945' then 'HMC' 
+
+
+			else null
+			end as item_name,value,valuenum
+from labevents    
+WHERE itemid in (
+      '50963','51300','50811','51279','51265',
+      '50809','50852','50862','50885','50883',
+      '50861','50878','50863','51241','50912',
+      '51106','51007','51105','51006','50971',
+      '50902','50983','50907','50906','50904',
+      '51000','51001','50994','50995','50993',
+      '51002','51003','50889','50915','51196',
+      '50910','50908','50911','51140','51237',
+      '51274','50818','50821','50945'
+)
+),
+getlab_chf1 as (
+SELECT tmp.subject_id
+      ,tmp.hadm_id
+      , MAX(CASE WHEN lower(tmp.item_name) = 'bnp' then tmp.valuenum ELSE NULL end) as BNP
+    
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'wbc' then tmp.valuenum ELSE NULL end) as WBC
+         , MAX(CASE WHEN lower(tmp.item_name) = 'hb' then tmp.valuenum ELSE NULL end) as HB
+         , MAX(CASE WHEN lower(tmp.item_name) = 'rb' then tmp.valuenum ELSE NULL end) as RB
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'plt' then tmp.valuenum ELSE NULL end) as PLT 
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'glu' then tmp.valuenum ELSE NULL end) as GLU 
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'hba1c' then tmp.valuenum ELSE NULL end) as HBA1C
+         , MAX(CASE WHEN lower(tmp.item_name) = 'alb' then tmp.valuenum ELSE NULL end) as ALB
+         , MAX(CASE WHEN lower(tmp.item_name) = 'tbil' then tmp.valuenum ELSE NULL end) as TBIL
+         , MAX(CASE WHEN lower(tmp.item_name) = 'dbil' then tmp.valuenum ELSE NULL end) as DBIL
+         , MAX(CASE WHEN lower(tmp.item_name) = 'alt' then tmp.valuenum ELSE NULL end) as ALT 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'ast' then tmp.valuenum ELSE NULL end) as AST 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'ap' then tmp.valuenum ELSE NULL end) as AP
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'lap' then tmp.valuenum ELSE NULL end) as LAP 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'cre' then tmp.valuenum ELSE NULL end) as CRE  
+         , MAX(CASE WHEN lower(tmp.item_name) = 'bun' then tmp.valuenum ELSE NULL end) as BUN 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'uric' then tmp.valuenum ELSE NULL end) as URIC  
+         , MAX(CASE WHEN lower(tmp.item_name) = 'uric_aurine' then tmp.valuenum ELSE NULL end) as URIC_AURINE  
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'unitro' then tmp.valuenum ELSE NULL end) as UNITRO 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'k' then tmp.valuenum ELSE NULL end) as K1
+         , MAX(CASE WHEN lower(tmp.item_name) = 'na' then tmp.valuenum ELSE NULL end) as NA
+         , MAX(CASE WHEN lower(tmp.item_name) = 'cl' then tmp.valuenum ELSE NULL end) as CL
+
+         , MAX(CASE WHEN lower(tmp.item_name) = 'cho' then tmp.valuenum ELSE NULL end) as CHO 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'ldl' then tmp.valuenum ELSE NULL end) as LDL 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'hdl' then tmp.valuenum ELSE NULL end) as HDL  
+         , MAX(CASE WHEN lower(tmp.item_name) = 'tg' then tmp.valuenum ELSE NULL end) as TG 
+
+         , MAX(CASE WHEN lower(tmp.item_name) = 't3' then tmp.valuenum ELSE NULL end) as T3 
+         , MAX(CASE WHEN lower(tmp.item_name) = 't4' then tmp.valuenum ELSE NULL end) as T4 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'ft4' then tmp.valuenum ELSE NULL end) as FT4 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'tsh' then tmp.valuenum ELSE NULL end) as TSH
+        
+         , MAX(CASE WHEN lower(tmp.item_name) = 'ctni1' then tmp.valuenum ELSE NULL end) as CTNI1 
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'ctni2' then tmp.valuenum ELSE NULL end) as CTNI2 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'crp' then tmp.valuenum ELSE NULL end) as CRP    
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'dimer' then tmp.valuenum ELSE NULL end) as dimer 
+         , MAX(CASE WHEN lower(tmp.item_name) = 'ck' then tmp.valuenum ELSE NULL end) as CK 
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'ckmb' then tmp.valuenum ELSE NULL end) as CKMB 
+		
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'antithrombin' then tmp.valuenum ELSE NULL end) as antithrombin 
+		
+	     , MAX(CASE WHEN lower(tmp.item_name) = 'po2' then tmp.valuenum ELSE NULL end) as PO2
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'pco2' then tmp.valuenum ELSE NULL end) as PCO2
+		
+		 , MAX(CASE WHEN lower(tmp.item_name) = 'hmc' then tmp.valuenum ELSE NULL end) as HMC 
+
+from tmp_lab as tmp
+group by tmp.subject_id,tmp.hadm_id
+)  
+
+select * from getlab_chf1
