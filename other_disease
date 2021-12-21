@@ -1,0 +1,258 @@
+DROP TABLE IF EXISTS other_disease CASCADE;
+CREATE TABLE other_disease AS
+
+with
+icd as
+(
+  select subject_id,hadm_id,
+  cast(icd9_code as char(5)) as icd9_code
+  from diagnoses_icd
+),
+eliflg as
+(
+select subject_id,hadm_id,icd9_code,
+case
+  WHEN icd9_code BETWEEN '426 ' and '4267 '  THEN 1 
+  WHEN icd9_code BETWEEN '4268 ' and '4269' THEN 1
+  WHEN icd9_code BETWEEN '427 ' and '42742' THEN 1 
+  WHEN  icd9_code BETWEEN '4276 ' and '4279' THEN 1 
+  WHEN  icd9_code='7850' THEN 1 
+  WHEN  icd9_code BETWEEN '77981' and '77982' THEN 1 
+  wHEN  icd9_code ='9720' THEN 1
+  WHEN  icd9_code BETWEEN 'V450 ' and 'V4509' THEN 1
+  WHEN icd9_code BETWEEN 'V5331' and 'V5339' THEN 1 
+end as Cardiac_Arrhythmias       
+
+,case
+   WHEN icd9_code BETWEEN '394 ' and '3971'  THEN 1  
+   WHEN  icd9_code BETWEEN '4240' and '4243' THEN 1 
+   WHEN  icd9_code BETWEEN '746 ' and '7466' THEN 1 
+   WHEN  icd9_code='V422' OR icd9_code='V433' THEN 1 
+ END AS VALVE    
+ 
+,CASE
+	 WHEN icd9_code BETWEEN '09320' and '09324'  THEN 1 
+   WHEN icd9_code='09884' then  1
+   WHEN icd9_code BETWEEN '4210' and '4219' then 1 
+   WHEN icd9_code BETWEEN '42490' and '42499' THEN 1 
+   WHEN icd9_code in ('3642','11281','11504','11514','11594','7422','3911','3979','03642') THEN 1 
+ END AS endocarditis 
+ 
+,CASE 
+ 
+ WHEN  icd9_code BETWEEN '41511' and '41519' THEN 1  
+ WHEN icd9_code in ('4160', '4162','4168','4169','4171','4178','4179') THEN 1  
+ WHEN icd9_code BETWEEN '74731' and '74739'  THEN 1  
+ WHEN  icd9_code BETWEEN '74741' and '74742' THEN 1   
+ WHEN  icd9_code BETWEEN '67380' and '67384' THEN 1  
+ WHEN icd9_code BETWEEN '90140' and '90142' THEN 1  
+ WHEN icd9_code in ('7703','79311','7942','78631','V1255') THEN 1 
+ WHEN icd9_code in ('5061','5080','5081','514','515','5160','51631','5165','51662','5183'
+      ,'51852','5186','51882','5735')  THEN 1 
+END AS pulmonary 
+
+,CASE
+   WHEN icd9_code in ('51851','51853','51881','51883','51884') THEN 1
+   WHEN  icd9_code='77084' THEN 1 
+	end as respiratory_failure 
+
+,CASE
+  WHEN icd9_code between '4400' and '4409 ' THEN 1  
+  WHEN icd9_code between '44100' and '4419 ' THEN 1  
+  WHEN icd9_code between '4420' and '4429' THEN 1 
+  WHEN icd9_code between '4431' and '44381' THEN 1  
+	WHEN icd9_code between '44383' and '4439' THEN 1 
+  WHEN icd9_code between '44421' and '44422' THEN 1 
+  WHEN icd9_code in ('4471','449')  THEN 1 
+END AS Peripheral_cardiovascular  
+
+,CASE 
+WHEN icd9_code between '64200' and '64204'  THEN 1 
+ WHEN icd9_code between '64220' and '64234'  THEN 1 
+WHEN icd9_code between '64270' and '64274' THEN 1 
+WHEN icd9_code between '64610' and '64624' THEN 1 
+WHEN icd9_code between '40200' and '40291' THEN 1 
+WHEN icd9_code between '40400' and '40403' THEN 1 
+WHEN icd9_code between '40410' and '40413' THEN 1 
+WHEN icd9_code between '40490' and '40493' THEN 1 
+WHEN icd9_code between '45930' and '45939' THEN 1 
+WHEN icd9_code BETWEEN '4010' and '4019' THEN 1  
+WHEN icd9_code BETWEEN '40501' and '40599' THEN 1 
+WHEN icd9_code in ('7962','V811','99791','4372') THEN 1 
+END AS  hypertension 
+
+,CASE
+   WHEN	icd9_code BETWEEN '64210' and '64214' THEN 1 
+   WHEN icd9_code BETWEEN '64620' and '64624' THEN 1 
+	 WHEN  icd9_code in ('2535','5881') then 1  
+ END AS renal_disease  
+ 
+,CASE
+ when icd9_code BETWEEN '40400' and '40413'   THEN 1 
+ WHEN icd9_code BETWEEN '40490' and '40493'  THEN 1 
+ WHEN icd9_code BETWEEN '5845' and '5849'   THEN 1 
+ WHEN icd9_code BETWEEN '66930' and '66934'   THEN 1  
+ WHEN icd9_code in ('40301','40311','40391','5856','6393') THEN 1 
+ END AS renal_failure  
+  
+ ,CASE
+  when icd9_code = '27800' then 1
+  when icd9_code = '27801' then 1
+  when icd9_code = '27803' then 1
+  when icd9_code between '64910' and '64914' then 1
+  when icd9_code between 'V8530' and 'V8539' then 1
+  when icd9_code = 'V854 ' then 1 
+  when icd9_code between 'V8541' and 'V8545' then 1
+  when icd9_code = 'V8554' then 1
+  when icd9_code = '79391'         then 1
+	end as Obesity      
+	
+,CASE
+    WHEN icd9_code between '2910' and '2913' THEN 1 
+    WHEN icd9_code = '2915' THEN 1 
+    WHEN icd9_code = '2918 ' THEN 1 
+    WHEN icd9_code = '29181' THEN 1
+    WHEN icd9_code = '29182' THEN 1
+    WHEN icd9_code = '29189' THEN 1
+    WHEN icd9_code = '2919' THEN 1 
+    WHEN icd9_code between '30300' and '30393' THEN 1
+    WHEN icd9_code between '30500' and '30503'  THEN 1
+END as Alcohol_abuse  
+
+,CASE
+  WHEN  icd9_code between '30400' and '30493' THEN 1 
+  WHEN icd9_code between '30520' and '30593' THEN 1 
+  WHEN icd9_code between '29282' and '29289'  THEN 1 
+  WHEN icd9_code between '64830' and '64834'  THEN 1 
+  WHEN icd9_code between '29282' and '29289' THEN 1 
+  WHEN icd9_code = '2929'  THEN 1 
+END AS Drug_abuse  
+
+,CASE 
+   WHEN icd9_code between '64900' and '64904' THEN 1 
+   WHEN icd9_code = '98984' THEN 1 
+   WHEN icd9_code = 'E8694' then 1 
+   WHEN icd9_code = 'V1582' THEN 1 
+   WHEN icd9_code = '3051'  THEN 1 
+END AS smoke 
+
+,CASE 
+   WHEN icd9_code = '4252' THEN 1 
+   WHEN icd9_code between '4255' and '4259' THEN 1 
+   WHEN icd9_code between '67450' and '67454' THEN 1 
+   WHEN icd9_code = '09382' THEN 1 
+   WHEN icd9_code = '3643'  then 1 
+   WHEN icd9_code between '42511' and '42518'  THEN 1 
+ END AS cardiomyopathy 
+ 
+ ,CASE
+ WHEN icd9_code in ('03282','1303','7423','4220','4290','3912','3980') THEN 1  
+ WHEN icd9_code between '42290' and '42299' THEN 1 
+ END AS myocarditis  
+ 
+ 
+ ,CASE 
+  WHEN icd9_code between '41000' and '41052'  THEN 1 
+  WHEN icd9_code between '41080' and '41092'  THEN 1 
+  WHEN icd9_code in ('4110','412','42979') THEN 1
+ END as Coronary_heart_1 
+ 
+ ,CASE
+ 
+ WHEN icd9_code between '41400' and '41407'  THEN 1 
+ WHEN icd9_code in ('4111','41181','41411','41412','74685','9724','V4581','V4582','99603','E9424') THEN 1 
+ WHEN icd9_code between '4142' and '4144' THEN 1
+ END AS Coronary_heart_2  
+ 
+ ,CASE 
+  WHEN  icd9_code in ('09381','09883','03641','11503','11513','11593','7421') THEN 1 
+  WHEN icd9_code in ('4200','3910','393') THEN 1 
+  when icd9_code between '42090' and '42099' THEN 1
+  WHEN icd9_code between '4231' and '4233'  THEN 1 
+END AS pericarditis   
+
+ ,CASE 
+ WHEN icd9_code BETWEEN  '64850' and '64864' THEN 1 
+ WHEN icd9_code ='7452' THEN 1 
+ END AS Congenital_cardiovascular
+ 
+ ,CASE 
+ WHEN icd9_code BETWEEN  '25000' and '25040' THEN 1 
+ WHEN icd9_code BETWEEN  '24900' and '24991' THEN 1 
+ WHEN icd9_code BETWEEN  '25041' and '25093' THEN 1 
+ WHEN icd9_code BETWEEN  '64800' and '64804' THEN 1  
+ WHEN icd9_code in ('7751','V771','V180','V1221') THEN 1 
+END AS Diabetes  
+
+,CASE 
+ WHEN icd9_code='2720' THEN 1 
+ WHEN icd9_code BETWEEN '2722'and '2724' THEN 1  
+END AS hyperlipidemia 
+
+,CASE 
+  WHEN icd9_code in ('7140','7142') THEN 1 
+  WHEN icd9_code BETWEEN '71430' and '71433' THEN 1  
+  WHEN icd9_code in ('V821','37334','6954','7100') THEN 1 
+END AS Connective_tissue  
+
+,CASE 
+   WHEN icd9_code BETWEEN '24240' and '24291' THEN 1
+   WHEN  icd9_code ='7753' THEN 1 
+END AS  Thyroid   
+
+,CASE 
+   WHEN icd9_code in ('4275','77985','V1253','V1741') THEN 1 
+END AS Cardiac_Arrest 
+
+,CASE
+ WHEN icd9_code BETWEEN '40200' and '40291' THEN 1 
+ WHEN icd9_code in ('09885','39890','39899','41189') THEN 1  
+ WHEN icd9_code in ('4148','4149') THEN 1 
+ WHEN icd9_code ='4161' THEN 1 
+ WHEN icd9_code BETWEEN '4168'and '4169' THEN 1  
+ WHEN icd9_code in ('42982','42989','3918','3919','V810','V173','4299') THEN 1  
+END AS  Heart_disease 
+
+,CASE 
+WHEN icd9_code in ('7454','7455','7470','42971','7458','74687') THEN 1
+END AS Ab_heart_structure  
+
+from icd
+)
+--select * from eliflg
+-- collapse the icd9_code specific flags into hadm_id specific flags
+-- this groups comorbidities together for a single patient admission
+, eligrp as
+(
+  select subject_id,hadm_id
+  , max(Cardiac_Arrhythmias) as Cardiac_Arrhythmias
+  , max(VALVE) as  VALVE 
+  , max(endocarditis) as endocarditis
+  , max(pulmonary) as pulmonary
+  , max(respiratory_failure) as respiratory_failure
+  , max(Peripheral_cardiovascular) as Peripheral_cardiovascular
+  , max(hypertension) as  hypertension 
+  , max(renal_disease ) as renal_disease 
+  , max(renal_failure) as renal_failure
+  , max(Obesity  ) as Obesity 
+  , max(Alcohol_abuse ) as Alcohol_abuse 
+  , max(Drug_abuse ) as Drug_abuse 
+  , max(smoke) as smoke
+  , max(cardiomyopathy) as cardiomyopathy
+  , max(myocarditis ) as myocarditis 
+  , max(Coronary_heart_1) as Coronary_heart_1
+  , max(Coronary_heart_2) as Coronary_heart_2
+  , max(pericarditis ) as pericarditis 
+  , max(Congenital_cardiovascular) as Congenital_cardiovascular
+  , max(Diabetes ) as Diabetes
+  , max(hyperlipidemia ) as hyperlipidemia
+  , max(Connective_tissue ) as Connective_tissue
+  , max(Thyroid) as Thyroid
+  , max(Cardiac_Arrest) as Cardiac_Arrest
+  , max(Heart_disease) as Heart_disease
+  , max(Ab_heart_structure) as Ab_heart_structure
+from eliflg
+group by subject_id,hadm_id 
+)
+
+select * from eligrp
