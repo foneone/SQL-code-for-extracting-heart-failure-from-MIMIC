@@ -1,0 +1,33 @@
+DROP TABLE IF EXISTS getlab_chf2 CASCADE;
+CREATE TABLE getlab_chf2 AS
+
+with tmp_lab as (
+SELECT subject_id, 
+       hadm_id,
+	   icustay_id,
+	   charttime,
+		  case when itemid in('224167','227243')  then 'DBP' 
+		   when itemid in ('227242','224643') then 'SBP' 
+       when itemid in ('211','220045') then 'Heart_R' 	
+       when itemid = '227008' then 'Ejection'	
+       when itemid in ('116','228368','7610') then 'cardiac_index'
+		else null
+		end as item_name,value,valuenum
+from chartevents  
+WHERE itemid in ('224167','227242','211','220045','227008','116','228368','7610')
+),
+getlab_chf2 as (
+SELECT tmp.subject_id
+      ,tmp.hadm_id
+	    ,tmp.icustay_id
+      , MAX(CASE WHEN lower(tmp.item_name) = 'dbp' then tmp.valuenum ELSE NULL end) as DBP 
+	  , MAX(CASE WHEN lower(tmp.item_name) = 'sbp' then tmp.valuenum ELSE NULL end) as SBP 
+	  , MAX(CASE WHEN lower(tmp.item_name) = 'heart_r' then tmp.valuenum ELSE NULL end) as heart_R 
+	  , MAX(CASE WHEN lower(tmp.item_name) = 'ejection' then tmp.valuenum ELSE NULL end) as Ejection 
+	  , MAX(CASE WHEN lower(tmp.item_name) = 'cardiac_index' then tmp.valuenum ELSE NULL end) as Cardiac_Index 
+	
+from tmp_lab as tmp
+group by tmp.subject_id,tmp.hadm_id,tmp.icustay_id
+)  
+
+select * from getlab_chf2
